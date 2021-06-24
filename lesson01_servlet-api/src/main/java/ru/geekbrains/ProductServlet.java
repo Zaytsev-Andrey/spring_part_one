@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-@WebServlet(urlPatterns = "/product")
+@WebServlet(urlPatterns = "/product/*")
 public class ProductServlet extends HttpServlet {
     private ProductRepository repository;
 
@@ -24,22 +24,42 @@ public class ProductServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         PrintWriter writer = resp.getWriter();
 
-        writer.println("<table>");
-        writer.println("<caption>Product list</caption>");
-        writer.println("<tr>");
-        writer.println("<th>ID</th>");
-        writer.println("<th>Title</th>");
-        writer.println("<th>Cost</th>");
-        writer.println("</tr>");
-
-        for (Product product : repository.findAll()) {
+        if (req.getPathInfo() == null) {
+            writer.println("<table>");
+            writer.println("<caption>Product list</caption>");
             writer.println("<tr>");
-            writer.println("<td>" + product.getId() + "</td>");
-            writer.println("<td>" + product.getTitle() + "</td>");
-            writer.println("<td>" + product.getCost() + "</td>");
+            writer.println("<th>ID</th>");
+            writer.println("<th>Title</th>");
+            writer.println("<th>Cost</th>");
             writer.println("</tr>");
-        }
 
-        writer.println("</table>");
+            for (Product product : repository.findAll()) {
+                String link = req.getContextPath() + req.getServletPath() + "/" + product.getId();
+                writer.println("<tr>");
+                writer.println("<td>" + product.getId() + "</td>");
+                writer.printf("<td><a href=\"%s\">%s</a></td>", link, product.getTitle());
+                writer.println("<td>" + product.getCost() + "</td>");
+                writer.println("</tr>");
+            }
+
+            writer.println("</table>");
+        } else {
+            String pathInfo = req.getPathInfo().substring(1);
+            long id;
+            try {
+                id = Long.parseLong(pathInfo);
+            } catch (NumberFormatException e) {
+                writer.println("<b>Product not found</b>");
+                return;
+            }
+
+            Product product;
+            if ((product = repository.findByID(id)) != null) {
+                writer.printf("<b>Product:</b> %s<br>", product.getTitle());
+                writer.printf("<b>Cost:</b> %s $<br>", product.getCost());
+            } else {
+                writer.println("<b>Product not found</b>");
+            }
+        }
     }
 }
