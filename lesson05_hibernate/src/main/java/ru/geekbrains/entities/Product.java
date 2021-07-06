@@ -1,6 +1,8 @@
 package ru.geekbrains.entities;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "product")
@@ -13,21 +15,22 @@ public class Product {
     @Column(length = 512, nullable = false)
     private String title;
 
-    @Column(nullable = false)
-    private int price;
+    @OneToMany(mappedBy = "product")
+    private List<Price> prices = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product")
+    private List<CustomerOrder> orders = new ArrayList<>();
 
     public Product() {
     }
 
-    public Product(String title, int price) {
+    public Product(String title) {
         this.title = title;
-        this.price = price;
     }
 
-    public Product(Long id, String title, int price) {
+    public Product(Long id, String title) {
         this.id = id;
         this.title = title;
-        this.price = price;
     }
 
     public Long getId() {
@@ -46,16 +49,24 @@ public class Product {
         this.title = title;
     }
 
-    public int getPrice() {
-        return price;
+    public List<Price> getPrices() {
+        return prices;
     }
 
-    public void setPrice(int price) {
-        this.price = price;
+    public void setPrices(List<Price> prices) {
+        this.prices = prices;
+    }
+
+    public List<CustomerOrder> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<CustomerOrder> orders) {
+        this.orders = orders;
     }
 
     @Override
     public String toString() {
-        return String.format("Product{id=%d, title=%s, price=%d}", id, title, price);
+        return String.format("Product{id=%d, title=%s, price=%d}", id, title);
     }
 }
