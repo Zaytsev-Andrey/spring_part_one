@@ -15,5 +15,8 @@
         <property name="current_session_context_class">thread</property>
 
         <mapping class="ru.geekbrains.entities.Product"/>
+        <mapping class="ru.geekbrains.entities.Customer"/>
+        <mapping class="ru.geekbrains.entities.CustomerOrder"/>
+        <mapping class="ru.geekbrains.entities.Price"/>
     </session-factory>
 </hibernate-configuration>
