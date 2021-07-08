@@ -1,47 +1,15 @@
 package ru.geekbrains.persist;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
-@Repository
-public class ProductRepository {
+public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    private final Map<Long, Product> products = new ConcurrentHashMap<>();
+    List<Product> findByCostBetween(BigDecimal min, BigDecimal max);
 
-    private final AtomicLong identity = new AtomicLong(0);
+    List<Product> findByCostGreaterThanEqual(BigDecimal min);
 
-    @PostConstruct
-    public void init() {
-        this.update(new Product("Apple", "0.50"));
-        this.update(new Product("Pineapple", "1.50"));
-        this.update(new Product("Grapefruit", "1.00"));
-        this.update(new Product("Mango", "1.60"));
-        this.update(new Product("Tangerine", "1.40"));
-    }
-
-    public List<Product> findAll() {
-        return new ArrayList<>(products.values());
-    }
-
-    public Optional<Product> findByID(long id) {
-        return Optional.ofNullable(products.get(id));
-    }
-
-    public void update(Product product) {
-        if (product.getId() == null) {
-            product.setId(identity.incrementAndGet());
-        }
-        products.put(product.getId(), product);
-    }
-
-    public Optional<Product> delete(long id) {
-        return Optional.ofNullable(products.remove(id));
-    }
+    List<Product> findByCostLessThanEqual(BigDecimal max);
 }
