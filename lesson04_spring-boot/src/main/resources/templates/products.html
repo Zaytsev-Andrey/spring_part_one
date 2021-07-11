@@ -38,6 +38,21 @@
             <a class="btn btn-primary" th:href="@{/product/new}">Add Product</a>
         </div>
 
+        <div class="col-12 mt-3">
+            <form class="form-inline" th:method="get">
+                <div class="form-group mb-2 mr-2">
+                    <label for="minCostFilter" class="sr-only">Min cost</label>
+                    <input type="number" class="form-control" id="minCostFilter" name="minCostFilter"
+                           th:value="${param.minCostFilter}" placeholder="Min cost">
+                    <label for="maxCostFilter" class="sr-only">Max cost</label>
+                    <input type="number" class="form-control" id="maxCostFilter" name="maxCostFilter"
+                           th:value="${param.maxCostFilter}" placeholder="Max cost">
+                </div>
+
+                <button type="submit" class="btn btn-primary mb-2">Apply</button>
+            </form>
+        </div>
+
         <div class="col-12">
             <table class="table table-bordered my-2">
                 <thead>
@@ -55,7 +70,9 @@
                     <td th:text="${product.cost}">cost</td>
                     <td>
                         <a class="btn btn-success" th:href="@{/product/{id}(id = ${product.id})}"><i class="fas fa-edit"></i></a>
-                        <a class="btn btn-danger" th:href="@{/product/del/{id}(id = ${product.id})}"><i class="far fa-trash-alt"></i></a>
+                        <form class="d-inline" th:method="delete" th:action="@{/product/{id}(id = ${product.id})}">
+                            <button type="submit" class="btn btn-danger"><i class="far fa-trash-alt"></i></button>
+                        </form>
                     </td>
                 </tr>
                 </tbody>
