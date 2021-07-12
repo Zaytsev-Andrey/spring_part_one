@@ -3,6 +3,9 @@ package ru.geekbrains.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import ru.geekbrains.persist.Product;
 import ru.geekbrains.persist.ProductRepository;
+import ru.geekbrains.persist.ProductSpecifications;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
@@ -32,33 +36,35 @@ public class ProductController {
 
     @GetMapping
     public String listPage(Model model,
-                           @RequestParam(name = "minCostFilter", required = false) String minCostFilter,
-                           @RequestParam(name = "maxCostFilter", required = false) String maxCostFilter) {
+                           @RequestParam("titleFilter") Optional<String> titleFilter,
+                           @RequestParam("minCostFilter") Optional<BigDecimal> minCostFilter,
+                           @RequestParam("maxCostFilter") Optional<BigDecimal> maxCostFilter,
+                           @RequestParam("page") Optional<Integer> page,
+                           @RequestParam("size") Optional<Integer> size,
+                           @RequestParam("sortBy") Optional<String> sortBy) {
         logger.info("Product list page requested");
 
-        List<Product> products;
-        BigDecimal min = null;
-        BigDecimal max = null;
-
-        if (minCostFilter != null && !minCostFilter.isEmpty()) {
-            min = new BigDecimal(minCostFilter);
+        Specification<Product> specification = Specification.where(null);
+        if (titleFilter.isPresent() && !titleFilter.get().isBlank()) {
+            specification = specification.and(ProductSpecifications.titlePrefix(titleFilter.get()));
+        }
+        if (minCostFilter.isPresent()) {
+            specification = specification.and(ProductSpecifications.minCost(minCostFilter.get()));
+        }
+        if (maxCostFilter.isPresent()) {
+            specification = specification.and(ProductSpecifications.maxCost(maxCostFilter.get()));
         }
 
-        if (maxCostFilter != null && !maxCostFilter.isEmpty()) {
-            max = new BigDecimal(maxCostFilter);
-        }
-
-        if (min != null && max != null) {
-            products = repository.findByCostBetween(min, max);
-        } else if (min != null) {
-            products = repository.findByCostGreaterThanEqual(min);
-        } else if (max != null) {
-            products = repository.findByCostLessThanEqual(max);
+        String sortColumn;
+        if (sortBy.isPresent() && !sortBy.get().isBlank()) {
+            sortColumn = sortBy.get();
         } else {
-            products = repository.findAll();
+            sortColumn = "id";
         }
 
-        model.addAttribute("products", products);
+        model.addAttribute("products", repository.findAll(specification,
+                PageRequest.of(page.orElse(1) - 1, size.orElse(3),
+                        Sort.by(sortColumn))));
         return "products";
     }
 
