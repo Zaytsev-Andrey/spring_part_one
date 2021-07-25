@@ -11,11 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import ru.geekbrains.persist.Product;
 import ru.geekbrains.persist.ProductRepository;
+import ru.geekbrains.service.ProductService;
 
 import javax.validation.Valid;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/product")
@@ -23,42 +21,20 @@ public class ProductController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
-    private final ProductRepository repository;
+    private final ProductService service;
 
     @Autowired
-    public ProductController(ProductRepository repository) {
-        this.repository = repository;
+    public ProductController(ProductService service) {
+        this.service = service;
     }
 
     @GetMapping
-    public String listPage(Model model,
-                           @RequestParam(name = "minCostFilter", required = false) String minCostFilter,
-                           @RequestParam(name = "maxCostFilter", required = false) String maxCostFilter) {
+    public String listPage(Model model, ProductListParams productListParams) {
         logger.info("Product list page requested");
 
-        List<Product> products;
-        BigDecimal min = null;
-        BigDecimal max = null;
 
-        if (minCostFilter != null && !minCostFilter.isEmpty()) {
-            min = new BigDecimal(minCostFilter);
-        }
 
-        if (maxCostFilter != null && !maxCostFilter.isEmpty()) {
-            max = new BigDecimal(maxCostFilter);
-        }
-
-        if (min != null && max != null) {
-            products = repository.findByCostBetween(min, max);
-        } else if (min != null) {
-            products = repository.findByCostGreaterThanEqual(min);
-        } else if (max != null) {
-            products = repository.findByCostLessThanEqual(max);
-        } else {
-            products = repository.findAll();
-        }
-
-        model.addAttribute("products", products);
+        model.addAttribute("products", service.findWithFilter(productListParams));
         return "products";
     }
 
@@ -74,7 +50,7 @@ public class ProductController {
     public String editProduct(@PathVariable("id") Long id, Model model) {
         logger.info("Editing product");
 
-        Product currentProduct = repository.findById(id)
+        Product currentProduct = service.findById(id)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
         model.addAttribute("product", currentProduct);
 
@@ -85,7 +61,7 @@ public class ProductController {
     public String removeProduct(@PathVariable("id") Long id, Model model) {
         logger.info("Deleting product");
 
-        repository.deleteById(id);
+        service.deleteById(id);
 
         return "redirect:/product";
     }
@@ -98,7 +74,7 @@ public class ProductController {
             return "product_form";
         }
 
-        repository.save(product);
+        service.save(product);
         return "redirect:/product";
     }
 

@@ -1,0 +1,14 @@
+<div class="row py-2">
+  <div class="col-12">
+    <form (ngSubmit)="save()">
+      <input type="hidden" id="id" name="id">
+      <div class="form-group">
+        <label>Product name</label>
+        <input [(ngModel)]="product.title" type="text" class="form-control" id="title" name="title" placeholder="Enter product name">
+        <label>Cost</label>
+        <input [(ngModel)]="product.cost" type="text" class="form-control" id="cost" name="cost" placeholder="Enter cost">
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+</div>
