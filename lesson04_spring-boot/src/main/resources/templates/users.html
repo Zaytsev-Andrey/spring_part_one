@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/doc_header :: doc_header()">
+
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light" th:replace="fragments/doc_nav :: doc_nav()"></nav>
+
+<div class="container">
+    <div class="row py-2">
+        <div class="col-12">
+            <a class="btn btn-primary" th:href="@{/user/new}">Add User</a>
+        </div>
+
+        <div class="col-12 mt-3">
+            <form class="form-inline" th:method="get">
+                <div class="form-group mb-2 mr-2">
+                    <label for="usernameFilter" class="sr-only">Username</label>
+                    <input type="text" class="form-control" id="usernameFilter" name="usernameFilter"
+                            th:value="${param.usernameFilter}" placeholder="Username">
+                </div>
+
+                <button type="submit" class="btn btn-primary mb-2">Apply</button>
+            </form>
+        </div>
+
+        <div class="col-12">
+            <table class="table table-bordered my-2">
+                <thead>
+                <tr>
+                    <th scope="col" th:replace="fragments/sort_user_header :: sort_header('id', 'id')"></th>
+                    <th scope="col" th:replace="fragments/sort_user_header :: sort_header('Username', 'username')"></th>
+                    <th scope="col" >E-mail</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${users.hasContent()}" th:each="user : ${users.content}">
+                    <th scope="row" th:text="${user.id}">1</th>
+                    <td th:text="${user.username}">title</td>
+                    <td th:text="${user.email}">email</td>
+                    <td>
+                        <a class="btn btn-success" th:href="@{/user/{id}(id = ${user.id})}"><i class="fas fa-edit"></i></a>
+                        <form class="d-inline" th:method="delete" th:action="@{/user/{id}(id = ${user.id})}">
+                            <button type="submit" class="btn btn-danger"><i class="far fa-trash-alt"></i></button>
+                        </form>
+                    </td>
+                </tr>
+
+                <tr th:unless="${users.hasContent()}">
+                    <td colspan="4">No data</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-12">
+            <nav aria-label="...">
+                <ul class="pagination">
+                    <li class="page-item " th:classappend="${!users.hasPrevious()} ? 'disabled'">
+                        <a class="page-link" th:href="@{/user(page=${users.number}, size=${users.size},
+                        titleFilter=${param.usernameFilter}, sortBy=${param.sortBy})}" tabindex="-1">Previous</a>
+                    </li>
+
+                    <li th:each="num : ${#numbers.sequence(1, (users.totalPages == 0 ? 1 : users.totalPages))}"
+                        th:classappend="${num == users.number + 1} ? 'active'"
+                        class="page-item">
+                        <a class="page-link"
+                           th:text="${num}"
+                           th:href="@{/user(page=${users.totalPages == 0 ? 1 : num}, size=${users.size},
+                           usernameFilter=${param.usernameFilter}, sortBy=${param.sortBy})}">1</a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${!users.hasNext()} ? 'disabled'">
+                        <a class="page-link" th:href="@{/user(page=${users.number} + 2, size=${users.size},
+                        usernameFilter=${param.usernameFilter}, sortBy=${param.sortBy})}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="fragments/doc_script :: doc_script()"></th:block>
+
+</body>
+</html>

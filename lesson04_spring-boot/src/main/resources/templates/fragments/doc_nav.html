@@ -1,4 +1,6 @@
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <nav class="navbar navbar-expand-lg navbar-light bg-light" th:fragment="doc_nav()">
     <a class="navbar-brand" href="#">EShop</a>
 
@@ -10,9 +12,22 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
-                <a class="nav-link" href="#">List</a>
+                <a class="nav-link" th:href="@{/product}">Product</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" th:href="@{/user}">User</a>
             </li>
         </ul>
+
+        <form sec:authorize="isAuthenticated()"
+              th:action="@{/logout}"
+              th:method="post"
+              class="form-inline my-2 my-lg-0">
+            <button class="btn btn-outline-success my-2 my-sm-0">
+                Logout <span sec:authentication="principal.username"></span>
+            </button>
+        </form>
     </div>
+
 </nav>
 </html>
