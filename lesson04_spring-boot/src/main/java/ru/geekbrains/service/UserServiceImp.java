@@ -7,12 +7,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import ru.geekbrains.controller.RoleDto;
 import ru.geekbrains.controller.UserDto;
 import ru.geekbrains.controller.UserListParam;
 import ru.geekbrains.persist.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,13 +55,13 @@ public class UserServiceImp implements UserService {
         return userRepository.findAll(specification,
                 PageRequest.of(Optional.ofNullable(params.getPage()).orElse(1) - 1,
                         Optional.ofNullable(params.getSize()).orElse(3),sort))
-                .map(u -> new UserDto(u.getId(), u.getUsername(), u.getEmail()));
+                .map(user -> new UserDto(user.getId(), user.getUsername(), user.getEmail(), mapRolesDto(user)));
     }
 
     @Override
     public Optional<UserDto> findById(Long id) {
         return userRepository.findById(id)
-                .map(u -> new UserDto(u.getId(), u.getUsername(), u.getEmail()));
+                .map(user -> new UserDto(user.getId(), user.getUsername(), user.getEmail(), mapRolesDto(user)));
     }
 
     @Override
@@ -72,14 +74,28 @@ public class UserServiceImp implements UserService {
         User user = new User(userDto.getId(),
                 userDto.getUsername(),
                 passwordEncoder.encode(userDto.getPassword()),
-                userDto.getEmail());
+                userDto.getEmail(),
+                userDto.getRoles().stream()
+                        .map(roleDto -> new Role(roleDto.getId(), roleDto.getName()))
+                        .collect(Collectors.toSet()));
         userRepository.save(user);
     }
 
     @Override
     public List<UserDto> findAll() {
         return userRepository.findAll().stream()
-                .map(u -> new UserDto(u.getId(), u.getUsername(), u.getEmail()))
+                .map(user -> new UserDto(user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        mapRolesDto(user)
+                ))
                 .collect(Collectors.toList());
+    }
+
+    private static Set<RoleDto> mapRolesDto(User user) {
+        return user.getRoles().stream()
+                .map(role -> new RoleDto(role.getId(), role.getName()))
+                .collect(Collectors.toSet());
+
     }
 }

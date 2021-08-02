@@ -2,6 +2,7 @@ package ru.geekbrains.controller;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import java.util.Set;
 
 public class UserDto {
 
@@ -18,13 +19,16 @@ public class UserDto {
     @Email
     private String email;
 
+    private Set<RoleDto> roles;
+
     public UserDto() {
     }
 
-    public UserDto(Long id, String username, String email) {
+    public UserDto(Long id, String username, String email, Set<RoleDto> roles) {
         this.id = id;
         this.username = username;
         this.email = email;
+        this.roles = roles;
     }
 
     public Long getId() {
@@ -65,5 +69,13 @@ public class UserDto {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Set<RoleDto> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<RoleDto> roles) {
+        this.roles = roles;
     }
 }

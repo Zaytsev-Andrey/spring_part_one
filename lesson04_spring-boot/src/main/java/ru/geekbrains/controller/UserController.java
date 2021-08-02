@@ -9,9 +9,17 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import ru.geekbrains.persist.Role;
+import ru.geekbrains.persist.RoleRepository;
+import ru.geekbrains.service.RoleService;
 import ru.geekbrains.service.UserService;
 
 import javax.validation.Valid;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/user")
@@ -21,9 +29,12 @@ public class UserController {
 
     private final UserService service;
 
+    private final RoleService roleService;
+
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, RoleService roleService) {
         this.service = userService;
+        this.roleService = roleService;
     }
 
     @GetMapping
@@ -35,10 +46,24 @@ public class UserController {
     }
 
     @GetMapping("/new")
-    public String newUserForm(Model model) {
+    public String newUserForm(Model model, Principal principal) {
         logger.info("Change user page requested");
 
-        model.addAttribute("userDto", new UserDto());
+        UserDto userDto = new UserDto();
+        Set<RoleDto> roles;
+        if (principal != null) {
+            roles = roleService.findAll().stream()
+                    .map(role -> new RoleDto(role.getId(), role.getName()))
+                    .collect(Collectors.toSet());
+        } else {
+            roles= roleService.findByDefaultRoleTrue().stream()
+                    .map(role -> new RoleDto(role.getId(), role.getName()))
+                    .collect(Collectors.toSet());
+                userDto.setRoles(roles);
+        }
+
+        model.addAttribute("userDto", userDto);
+        model.addAttribute("roles", roles);
         return "user_form";
     }
 
@@ -49,6 +74,9 @@ public class UserController {
         UserDto currentUser = service.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found"));
         model.addAttribute("userDto", currentUser);
+        model.addAttribute("roles", roleService.findAll().stream()
+                .map(role -> new RoleDto(role.getId(), role.getName()))
+                .collect(Collectors.toSet()));
 
         return "user_form";
     }
@@ -62,7 +90,7 @@ public class UserController {
         return "redirect:/user";
     }
 
-    @PostMapping
+    @PostMapping("/update")
     public String update(@Valid UserDto userDto, BindingResult result) {
         logger.info("Updating user");
 
